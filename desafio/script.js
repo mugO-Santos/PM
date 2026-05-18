@@ -34,7 +34,11 @@ if (showOptionalBtn && optionalModal && optionalClose) {
     if (e.target === optionalModal) optionalModal.style.display = 'none';
   });
 }
-document.addEventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', () => {
+  updateOperationalStatus();
+  initApp();
+  setInterval(updateOperationalStatus, 60000);
+});
 function loadProfile() {
   const saved = localStorage.getItem(PROFILE_KEY);
   if (saved) {
@@ -51,6 +55,15 @@ const PROFILE_KEY = 'checklist_profile_v1';
 let optionalDocs = [];
 let profile = null;
 let state = [];
+
+function updateOperationalStatus() {
+  const statusTime = document.getElementById('last-update');
+  if (!statusTime) return;
+  statusTime.textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
 
 function saveProfile() {
   localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
@@ -129,6 +142,7 @@ function handleProfileSubmit(e) {
 
 // Inicialização condicional
 function initApp() {
+  updateOperationalStatus();
   profile = loadProfile();
   if (!profile) {
     renderProfileQuestions();
@@ -155,12 +169,12 @@ function getProgress() {
 }
 
 function motivationalMessage(percent) {
-  if (percent === 100) return 'Checklist concluído! Parabéns!';
-  if (percent >= 90) return 'Missão quase completa!';
+  if (percent === 100) return 'Operacao concluida com sucesso!';
+  if (percent >= 90) return 'Operacao quase finalizada!';
   if (percent >= 70) return 'Falta pouco para finalizar!';
   if (percent >= 40) return 'Você já concluiu ' + percent + '%! Continue!';
   if (percent > 0) return 'Ótimo começo! Siga em frente!';
-  return 'Comece sua missão!';
+  return 'Inicie sua operacao!';
 }
 
 function renderDashboard() {
@@ -180,6 +194,12 @@ function renderDashboard() {
       li.textContent = doc.title;
       dashNextList.appendChild(li);
     }
+  });
+
+  document.querySelectorAll('.dashboard-card').forEach((card, index) => {
+    card.classList.remove('stagger-in');
+    card.style.animationDelay = `${index * 70}ms`;
+    card.classList.add('stagger-in');
   });
 }
 
@@ -207,6 +227,8 @@ function renderLists() {
   state.forEach((doc, idx) => {
     const docData = DOCS[idx];
     const li = document.createElement('li');
+    li.classList.add('stagger-in');
+    li.style.animationDelay = `${(idx % 10) * 45}ms`;
     // Prioridade visual
     if (docData.priority === 'alta') li.classList.add('priority-high');
     else if (docData.priority === 'media') li.classList.add('priority-medium');
@@ -241,10 +263,16 @@ function renderLists() {
     // Prioridade badge
     const badge = document.createElement('span');
     badge.className = 'priority-badge';
-    badge.textContent = docData.priority === 'alta' ? 'Alta' : docData.priority === 'media' ? 'Média' : 'Baixa';
-    if (docData.priority === 'media') badge.style.background = 'var(--accent)';
-    if (docData.priority === 'baixa') badge.style.background = 'var(--muted)';
-    if (docData.priority === 'media') badge.style.color = '#7c4700';
+    if (docData.priority === 'alta') {
+      badge.classList.add('priority-badge-high');
+      badge.textContent = 'A! Alta';
+    } else if (docData.priority === 'media') {
+      badge.classList.add('priority-badge-medium');
+      badge.textContent = 'M* Media';
+    } else {
+      badge.classList.add('priority-badge-low');
+      badge.textContent = 'B- Baixa';
+    }
     title.appendChild(badge);
     infoDiv.appendChild(title);
 
@@ -289,9 +317,22 @@ function renderLists() {
     else if (doc.progressing) progressingList.appendChild(li);
     else pendingList.appendChild(li);
   });
+
+  addEmptyStateIfNeeded(pendingList, 'Sem pendencias no momento.');
+  addEmptyStateIfNeeded(progressingList, 'Nenhum documento em andamento.');
+  addEmptyStateIfNeeded(completedList, 'Ainda nao ha documentos concluidos.');
+}
+
+function addEmptyStateIfNeeded(listElement, message) {
+  if (listElement.children.length > 0) return;
+  const li = document.createElement('li');
+  li.className = 'empty-state';
+  li.textContent = message;
+  listElement.appendChild(li);
 }
 
 function renderAll() {
+  updateOperationalStatus();
   renderDashboard();
   renderProgressBar();
   renderMotivation();

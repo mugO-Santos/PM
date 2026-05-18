@@ -1,14 +1,20 @@
 {
-  "name": "Missão Oficial",
-  "short_name": "Missão",
-  "description": "Checklist digital premium para aprovação documental.",
+  "name": "Painel Operacional PMESP",
+  "short_name": "PMESP",
+  "description": "Checklist documental com identidade visual operacional.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#2563eb",
-  "theme_color": "#2563eb",
+  "background_color": "#0f2f57",
+  "theme_color": "#0f2f57",
   "orientation": "portrait",
   "scope": "/",
   "icons": [
+    {
+      "src": "/icon/pmesp-emblema.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
     {
       "src": "/icon/icon-192.png",
       "sizes": "192x192",

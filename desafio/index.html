@@ -4,20 +4,24 @@
   <meta charset="UTF-8">
   <link rel="manifest" href="/manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Missão Oficial</title>
+  <title>Painel Operacional PMESP</title>
 
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#2563eb">
-  <meta name="application-name" content="Missão Oficial">
+  <meta name="theme-color" content="#0f2f57">
+  <meta name="application-name" content="Painel Operacional PMESP">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Missão Oficial">
-  <meta name="description" content="Checklist digital premium para aprovação documental.">
+  <meta name="apple-mobile-web-app-title" content="Painel Operacional PMESP">
+  <meta name="description" content="Checklist documental com identidade visual operacional.">
 
+  <link rel="icon" type="image/svg+xml" href="/icon/pmesp-emblema.svg">
   <link rel="icon" href="/icon/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/icon/favicon-32x32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/icon/icon-192.png">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -25,8 +29,14 @@
   <div class="container">
 
     <header>
-      <h1>Checklist de Documentos</h1>
-      <p class="subtitle">Checklist premium, visual e motivador</p>
+      <div class="status-strip">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>Painel ativo</span>
+        <span id="last-update" class="status-time">--:--</span>
+      </div>
+      <div class="header-seal" aria-hidden="true">PMESP</div>
+      <h1>Painel Operacional</h1>
+      <p class="subtitle">Checklist documental PMESP</p>
     </header>
 
     <div class="pdf-download">
@@ -40,21 +50,21 @@
       <form id="profile-questions-form" class="profile-questions-form-premium">
 
         <div class="branding-premium">
-          <img src="/tela-inicial/banner.png" alt="Imagem inicial" class="brand-img-top" />
-          <h1 class="brand-title">Missão Oficial</h1>
-          <div class="brand-desc">Checklist digital premium para aprovação documental</div>
+          <img src="/tela-inicial/banner-operacional.svg" alt="Banner operacional PMESP" class="brand-img-top" />
+          <h1 class="brand-title">PMESP</h1>
+          <div class="brand-desc">Painel de conferencia documental operacional</div>
         </div>
 
         <div class="onboarding-premium">
-          <div class="onboarding-step">✔️ Salve seu progresso localmente</div>
-          <div class="onboarding-step">✔️ Use no celular ou computador</div>
-          <div class="onboarding-step">✔️ Instale como app (PWA)</div>
+          <div class="onboarding-step">Salve seu progresso localmente</div>
+          <div class="onboarding-step">Use no celular ou computador</div>
+          <div class="onboarding-step">Instale como app (PWA)</div>
         </div>
 
         <h2 class="profile-title">Personalize seu checklist</h2>
         <div id="profile-questions-list"></div>
 
-        <button type="submit" class="profile-questions-btn-premium">Começar Missão</button>
+        <button type="submit" class="profile-questions-btn-premium">Iniciar Operacao</button>
 
         <div class="privacy-msg">
           🔒 Seus dados ficam salvos <b>apenas no seu navegador</b>
@@ -154,32 +164,13 @@
       <div id="mission-complete" class="mission-complete" style="display:none;">
         <div class="mission-content">
           <div class="mission-anim">🎉</div>
-          <h2>MISSÃO CONCLUÍDA</h2>
+          <h2>OPERACAO CONCLUIDA</h2>
           <div id="mission-summary"></div>
           <div class="mission-seal">🏅</div>
         </div>
       </div>
 
     </div>
-
-    <!-- 💙 Apoie o criador (AGORA NO LUGAR CERTO) -->
-    <section class="support-section">
-      <h3>💙 Apoie o criador</h3>
-      <p>Se esse app te ajudou, considere apoiar o desenvolvimento 🙌</p>
-
-      <div class="support-buttons">
-        <a href="https://seu-link-pix-ou-pagamento" target="_blank" class="support-btn">
-          💰 Fazer uma contribuição
-        </a>
-        <button onclick="copyPix()" class="support-btn secondary">
-          📋 Copiar chave Pix
-        </button>
-      </div>
-
-      <small>
-        Clique para copiar a chave Pix e apoiar! Qualquer valor já ajuda muito 🚀
-      </small>
-    </section>
 
     <!-- Footer isolado -->
     <footer class="footer-fixed">
@@ -203,14 +194,20 @@
   <script src="exportPDF.js"></script>
   <script src="docsDetalhados.js"></script>
   <script src="script.js"></script>
-
   <script>
-    function copyPix() {
-      const pixKey = "12981683243";
-      navigator.clipboard.writeText(pixKey).then(() => {
-        alert("Chave Pix copiada!");
-      });
-    }
+    (function () {
+      function updateStatusTime() {
+        var statusTime = document.getElementById('last-update');
+        if (!statusTime) return;
+        statusTime.textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      document.addEventListener('DOMContentLoaded', updateStatusTime);
+      window.addEventListener('load', updateStatusTime);
+      setInterval(updateStatusTime, 60000);
+    })();
   </script>
 
 </body>
