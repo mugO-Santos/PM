@@ -14,8 +14,89 @@ if (resetAppBtn) {
 // Registrar Service Worker para PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    let refreshing = false;
+    let updateToast = null;
+
+    function forceActivateWaitingSW(registration) {
+      if (registration && registration.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+    }
+
+    function hideUpdateToast() {
+      if (!updateToast) return;
+      updateToast.classList.remove('show');
+      setTimeout(() => {
+        if (updateToast && updateToast.parentNode) {
+          updateToast.parentNode.removeChild(updateToast);
+        }
+        updateToast = null;
+      }, 180);
+    }
+
+    function showUpdateToast(registration) {
+      if (updateToast) return;
+
+      updateToast = document.createElement('div');
+      updateToast.className = 'update-toast show';
+      updateToast.innerHTML = `
+        <div class="update-toast-content">
+          <div class="update-toast-title">Nova versão disponível</div>
+          <div class="update-toast-text">Toque em Atualizar para aplicar melhorias visuais.</div>
+          <div class="update-toast-actions">
+            <button type="button" class="update-toast-btn ghost" data-action="dismiss">Agora não</button>
+            <button type="button" class="update-toast-btn" data-action="update">Atualizar</button>
+          </div>
+        </div>
+      `;
+
+      updateToast.addEventListener('click', (event) => {
+        const action = event.target && event.target.dataset ? event.target.dataset.action : null;
+        if (action === 'dismiss') {
+          hideUpdateToast();
+        }
+        if (action === 'update') {
+          forceActivateWaitingSW(registration);
+          hideUpdateToast();
+        }
+      });
+
+      document.body.appendChild(updateToast);
+    }
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+
     navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('Service Worker registrado com sucesso:', reg))
+      .then(reg => {
+        console.log('Service Worker registrado com sucesso:', reg);
+
+        // Verifica atualização ao abrir o app
+        reg.update();
+
+        // Em instalações já existentes, mostra aviso para o usuario atualizar
+        if (reg.waiting) {
+          showUpdateToast(reg);
+        }
+
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showUpdateToast(reg);
+            }
+          });
+        });
+
+        // Revalida versão periodicamente para reduzir desatualização no celular
+        setInterval(() => {
+          reg.update();
+        }, 60 * 60 * 1000);
+      })
       .catch(err => console.error('Erro ao registrar Service Worker:', err));
   });
 }
@@ -36,6 +117,7 @@ if (showOptionalBtn && optionalModal && optionalClose) {
 }
 document.addEventListener('DOMContentLoaded', () => {
   updateOperationalStatus();
+  initAppVersionBadge();
   initApp();
   setInterval(updateOperationalStatus, 60000);
 });
@@ -63,6 +145,23 @@ function updateOperationalStatus() {
     hour: '2-digit',
     minute: '2-digit'
   });
+}
+
+function initAppVersionBadge() {
+  const versionEl = document.getElementById('app-version');
+  if (!versionEl) return;
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(registration => {
+      const cacheVersion = registration.active ? registration.active.scriptURL.split('?')[0] : 'unknown';
+      const versionMatch = document.body.getAttribute('data-version') || 'v2026.05';
+      versionEl.textContent = versionMatch;
+    }).catch(() => {
+      versionEl.textContent = 'v2026.05';
+    });
+  } else {
+    versionEl.textContent = 'v2026.05';
+  }
 }
 
 function saveProfile() {
